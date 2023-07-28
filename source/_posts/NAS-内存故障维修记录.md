@@ -1,7 +1,10 @@
 ---
 title: NAS 内存故障维修记录
 date: 2023-07-28 14:18:08
-tags: NAS, 硬件 
+tags: 
+- 硬件
+- 故障
+- nas
 categories: NAS 
 ---
 
