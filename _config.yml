@@ -72,8 +72,17 @@ index_generator:
 
 # Category & Tag
 default_category: uncategorized
-category_map:
+category_map: 
 tag_map:
+
+# Generate categories from directory-tree
+# Dependencies: https://github.com/xu-song/hexo-auto-category
+# depth: the max_depth of directory-tree you want to generate, should > 0
+# multiple: multiple category hierarchies
+auto_category:
+ enable: true
+ multiple: false
+ depth: 
 
 # Metadata elements
 ## https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta

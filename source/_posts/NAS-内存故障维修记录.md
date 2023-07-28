@@ -1,7 +1,8 @@
 ---
 title: NAS 内存故障维修记录
 date: 2023-07-28 14:18:08
-tags: 
+tags: NAS, 硬件 
+categories: NAS 
 ---
 
 近日忽然发现 NAS 上跑的 qbittorrent 经常报错，表现为总有部分文件块的哈希出错，包括旧文件重新校验也是相同的状况。
