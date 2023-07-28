@@ -57,10 +57,9 @@ prismjs:
   tab_replace: ''
 
 # Markdown renderer
-markd:
+marked:
   prependRoot: true
-  postAsset: true 
-    
+  postAsset: true    
 
 # Home page setting
 # path: Root path for your blogs index page. (default = '')
