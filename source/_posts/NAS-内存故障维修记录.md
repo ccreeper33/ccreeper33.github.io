@@ -17,9 +17,11 @@ dd if=/dev/zero of=test bs=1M count=10000
 md5sum test
 ```
 
-![](IOtest.jpg)
-
 结果可见，由于未知故障，我获得了一块真正意义上的随机存储器（
+
+<!--more-->
+
+![](IOtest.jpg)
 
 初步的怀疑对象是硬盘：
 
