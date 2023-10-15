@@ -1,7 +1,8 @@
 ---
 title: A测速通
 date: 2023-10-15 21:38:56
-tags: XDU, 实验
+tags: 实验
+categoties: XDU
 ---
 
 # 题目
