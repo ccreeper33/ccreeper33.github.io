@@ -34,7 +34,7 @@ jobs:
       - name: Fetch LFS Files
         run: git lfs pull
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
       - name: Build
         run: npm run build
       - name: Deploy
