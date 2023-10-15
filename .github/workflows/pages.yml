@@ -16,6 +16,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           # If your repository depends on submodule, please see: https://github.com/actions/checkout
           submodules: recursive
+          lfs: true
 
       - name: Use Node.js 20.x
         uses: actions/setup-node@v2
@@ -28,8 +29,12 @@ jobs:
           key: ${{ runner.OS }}-npm-cache
           restore-keys: |
             ${{ runner.OS }}-npm-cache
+      - name: Install Git LFS
+        run: git lfs install
+      - name: Fetch LFS Files
+        run: git lfs pull
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
       - name: Build
         run: npm run build
       - name: Deploy
