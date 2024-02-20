@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha256-CTSx/A06dm1B063156EVh15m6Y67pAjZZaQc89LLSrU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.24/fancybox/fancybox.css" integrity="sha256-vQkngPS8jiHHH0I6ABTZroZk8NPZ7b+MUReOFE9UsXQ=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-material.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous"></script>
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.ccreeper.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.18.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":true,"motion":{"enable":true,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="考完研想给自己的简历镀金（灌水？），于是想做一下大名鼎鼎的 MIT 6.5840(or 6.824) 。理论知识和框架都在⚡🧱的课程中学习和使用过，所以对于 lectures 就快速浏览了翻译版本，直接进入 projects 阶段：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MIT 6.5840(6.824) - lab 1: MapReduce">
+<meta property="og:url" content="https://blog.ccreeper.xyz/2024/02/16/MIT6-824-lab1/">
+<meta property="og:site_name" content="ccreeper">
+<meta property="og:description" content="考完研想给自己的简历镀金（灌水？），于是想做一下大名鼎鼎的 MIT 6.5840(or 6.824) 。理论知识和框架都在⚡🧱的课程中学习和使用过，所以对于 lectures 就快速浏览了翻译版本，直接进入 projects 阶段：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.ccreeper.xyz/2024/02/16/MIT6-824-lab1/mapred_paper.png">
+<meta property="article:published_time" content="2024-02-16T13:37:42.000Z">
+<meta property="article:modified_time" content="2024-02-20T15:09:55.109Z">
+<meta property="article:author" content="ccreeper">
+<meta property="article:tag" content="分布式">
+<meta property="article:tag" content="csdiy">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.ccreeper.xyz/2024/02/16/MIT6-824-lab1/mapred_paper.png">
+
+
+<link rel="canonical" href="https://blog.ccreeper.xyz/2024/02/16/MIT6-824-lab1/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://blog.ccreeper.xyz/2024/02/16/MIT6-824-lab1/","path":"2024/02/16/MIT6-824-lab1/","title":"MIT 6.5840(6.824) - lab 1: MapReduce"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>MIT 6.5840(6.824) - lab 1: MapReduce | ccreeper</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">ccreeper</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">6</span></a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">3</span></a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">3</span></a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%98%85%E8%AF%BB%E8%AE%BA%E6%96%87"><span class="nav-number">1.</span> <span class="nav-text">阅读论文</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E6%9E%90%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B"><span class="nav-number">1.1.</span> <span class="nav-text">分析执行过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Action-1-%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="nav-number">1.1.1.</span> <span class="nav-text">Action 1 准备工作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Action-2-%E8%A7%92%E8%89%B2%E5%88%92%E5%88%86"><span class="nav-number">1.1.2.</span> <span class="nav-text">Action 2 角色划分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Action-3-4-map%E4%BB%BB%E5%8A%A1%E9%98%B6%E6%AE%B5"><span class="nav-number">1.1.3.</span> <span class="nav-text">Action 3 - 4 map任务阶段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Action-5-6-reduce%E4%BB%BB%E5%8A%A1%E9%98%B6%E6%AE%B5"><span class="nav-number">1.1.4.</span> <span class="nav-text">Action 5 - 6 reduce任务阶段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Action-7"><span class="nav-number">1.1.5.</span> <span class="nav-text">Action 7</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%B9%E9%94%99"><span class="nav-number">1.2.</span> <span class="nav-text">容错</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#worker%E6%95%85%E9%9A%9C"><span class="nav-number">1.2.1.</span> <span class="nav-text">worker故障</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#master-%E6%95%85%E9%9A%9C"><span class="nav-number">1.2.2.</span> <span class="nav-text">master 故障</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Semantics-in-the-Presence-of-Failures"><span class="nav-number">1.2.3.</span> <span class="nav-text">Semantics in the Presence of Failures</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E8%BF%87%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">实现过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E5%AE%9A%E4%B9%89"><span class="nav-number">2.1.</span> <span class="nav-text">数据类型定义</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%BB%E5%8A%A1%E4%BF%A1%E6%81%AF"><span class="nav-number">2.1.1.</span> <span class="nav-text">任务信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Coordinator"><span class="nav-number">2.1.2.</span> <span class="nav-text">Coordinator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RPC%E6%95%B0%E6%8D%AE"><span class="nav-number">2.1.3.</span> <span class="nav-text">RPC数据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Worker%E8%AE%BE%E8%AE%A1"><span class="nav-number">2.2.</span> <span class="nav-text">Worker设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Coordinator%E8%AE%BE%E8%AE%A1"><span class="nav-number">2.3.</span> <span class="nav-text">Coordinator设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BACoordinator"><span class="nav-number">2.3.1.</span> <span class="nav-text">创建Coordinator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90-map-%E4%BB%BB%E5%8A%A1"><span class="nav-number">2.3.2.</span> <span class="nav-text">生成 map 任务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90-reduce-%E4%BB%BB%E5%8A%A1"><span class="nav-number">2.3.3.</span> <span class="nav-text">生成 reduce 任务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BE%97%E5%87%BA%E8%BE%93%E5%87%BA%E6%96%87%E4%BB%B6-%E5%88%A0%E9%99%A4%E4%B8%AD%E9%97%B4%E6%96%87%E4%BB%B6"><span class="nav-number">2.3.4.</span> <span class="nav-text">得出输出文件 &amp; 删除中间文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%84%E7%90%86-worker%E8%AF%B7%E6%B1%82"><span class="nav-number">2.3.5.</span> <span class="nav-text">处理 worker请求</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">3.</span> <span class="nav-text">测试结果</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90"><span class="nav-number">3.1.</span> <span class="nav-text">异常分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#job-count-test"><span class="nav-number">3.1.1.</span> <span class="nav-text">job count test</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#crash-test"><span class="nav-number">3.1.2.</span> <span class="nav-text">crash test</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ccreeper</p>
+  <div class="site-description" itemprop="description">You Only Live Once</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ccreeper33" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ccreeper33" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button" aria-label="返回顶部">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+
+    
+        <div class="pjax">
+        </div>
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.ccreeper.xyz/2024/02/16/MIT6-824-lab1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ccreeper">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ccreeper">
+      <meta itemprop="description" content="You Only Live Once">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="MIT 6.5840(6.824) - lab 1: MapReduce | ccreeper">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MIT 6.5840(6.824) - lab 1: MapReduce<a href="https://github.com/user-name/repo-name/tree/branch-name/subdirectory-name/_posts/MIT6-824-lab1.md" class="post-edit-link" title="编辑" rel="noopener" target="_blank"><i class="fa fa-pen-nib"></i></a>
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2024-02-16 21:37:42" itemprop="dateCreated datePublished" datetime="2024-02-16T21:37:42+08:00">2024-02-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-02-20 23:09:55" itemprop="dateModified" datetime="2024-02-20T23:09:55+08:00">2024-02-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%AD%A6%E7%82%B9%E6%96%B0%E4%B8%9C%E8%A5%BF/" itemprop="url" rel="index"><span itemprop="name">学点新东西</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>考完研想给自己的简历镀金（灌水？），于是想做一下大名鼎鼎的 MIT 6.5840(or 6.824) 。理论知识和框架都在⚡🧱的课程中学习和使用过，所以对于 lectures 就快速浏览了<a target="_blank" rel="noopener" href="https://mit-public-courses-cn-translatio.gitbook.io/mit6-824/">翻译版本</a>，直接进入 projects 阶段：</p>
+<span id="more"></span>
+
+<h1 id="阅读论文"><a href="#阅读论文" class="headerlink" title="阅读论文"></a>阅读论文</h1><p><a target="_blank" rel="noopener" href="http://research.google.com/archive/mapreduce-osdi04.pdf">MapReduce 论文</a>中给出了在一个由大量消费级 PC 和网络组成的集群上实现 MapReduce 的思路。然而 lab 1 中要求的环境是在单机上，使用进程模拟的分布式环境，所以完全照搬论文思路似乎并不合理。<del>（另，lab 1 中将论文的 master 称为 coordinator 是否有点太过政治正确了……）</del></p>
+<h2 id="分析执行过程"><a href="#分析执行过程" class="headerlink" title="分析执行过程"></a>分析执行过程</h2><blockquote>
+<p>We have given you a little code to start you off. The “main” routines for the coordinator and worker are in <code>main/mrcoordinator.go</code> and <code>main/mrworker.go</code>; don’t change these files. You should put your implementation in <code>mr/coordinator.go</code>,<code> mr/worker.go</code>, and <code>mr/rpc.go</code>. </p>
+</blockquote>
+<p>lab 中给出了基本的执行框架，与论文中的略有区别。正如论文中提到的，</p>
+<blockquote>
+<p>Many different implementations of the MapReduce interface are possible. The right choice depends on the environment. </p>
+</blockquote>
+<p>lab的运行环境与论文中并不相同。需要实现的内容集中在 <code>mr/coordinator.go</code> <code> mr/worker.go</code> <code>mr/rpc.go</code>三个文件中。</p>
+<p><img src="/2024/02/16/MIT6-824-lab1/mapred_paper.png" alt="论文中的执行过程"></p>
+<h3 id="Action-1-准备工作"><a href="#Action-1-准备工作" class="headerlink" title="Action 1 准备工作"></a>Action 1 准备工作</h3><blockquote>
+<p>The MapReduce library in the user program first splits the input files into M pieces of typically 16 megabytes to 64 megabytes (MB) per piece (controllable by the user via an optional parameter). It then starts up many copies of the program on a cluster of machines.</p>
+</blockquote>
+<p>论文中的第一步，由用户程序调用MapReduce库，将输入文件分割为M个16-64MB 的块（对应后续产生的M个map任务），然后在集群中fork出多份程序的副本，其中一个为Master，其余为Worker。</p>
+<p>而lab中，用户程序对应了<code>main/mrcoordinator.go</code>（创建coordinator进程）<code>main/mrworker.go</code>（创建worker进程）<code>test-mr.sh</code>（执行脚本）<code>mrapps/*.go</code>（定义map&#x2F;reduce函数，以<a target="_blank" rel="noopener" href="https://pkg.go.dev/plugin">Go plugin</a>的形式加载至worker）。这一部分均为给定的代码，不需要自己实现。对于文件分割，lab中给出的方案是直接按照文件执行map任务，不需要分割。</p>
+<h3 id="Action-2-角色划分"><a href="#Action-2-角色划分" class="headerlink" title="Action 2 角色划分"></a>Action 2 角色划分</h3><blockquote>
+<p>One of the copies of the program is special – the master. The rest are workers that are assigned work by the master. There are M map tasks and R reduce tasks to assign. The master picks idle workers and assigns each one a map task or a reduce task.</p>
+</blockquote>
+<p>论文中，由master指定空闲的worker来执行任务。而lab中，由worker（通过RPC）向coordinator请求任务并执行。</p>
+<h3 id="Action-3-4-map任务阶段"><a href="#Action-3-4-map任务阶段" class="headerlink" title="Action 3 - 4 map任务阶段"></a>Action 3 - 4 map任务阶段</h3><blockquote>
+<p>A worker who is assigned a map task reads the contents of the corresponding input split. It parses key&#x2F;value pairs out of the input data and passes each<br>pair to the user-defined Map function. The intermediate key&#x2F;value pairs produced by the Map function are buffered in memory. </p>
+</blockquote>
+<blockquote>
+<p>Periodically, the buffered pairs are written to local disk, partitioned into R regions by the partitioning function. The locations of these buffered pairs on<br>the local disk are passed back to the master, who is responsible for forwarding these locations to the reduce workers.</p>
+</blockquote>
+<p>这一步中map worker读入输入文件，执行map函数，并给出中间数据。</p>
+<p>论文中，输入输出数据保存在<code> a global file system</code>，或者在这个环境下应当特指GFS。类似地，hadoop将MapReduce的输入输出数据存放在HDFS中。</p>
+<p>而map worker产生的中间数据存放在map worker的内存，再定期地将其分为R份（对应reduce任务数量）保存在本地硬盘。然后将中间数据的位置返回至master，并进一步由master通知reduce worker应该从哪里获取数据。</p>
+<p>对于lab，这部分正是需要实现的。考虑lab的单机环境及较小的数据规模，比起实际的集群应当更容易实现。</p>
+<h3 id="Action-5-6-reduce任务阶段"><a href="#Action-5-6-reduce任务阶段" class="headerlink" title="Action 5 - 6 reduce任务阶段"></a>Action 5 - 6 reduce任务阶段</h3><blockquote>
+<p>When a reduce worker is notified by the master about these locations, it uses remote procedure calls to read the buffered data from the local disks of the map workers. When a reduce worker has read all intermediate data, it sorts it by the intermediate keys so that all occurrences of the same key are grouped together. The sorting is needed because typically many different keys map to the same reduce task. If the amount of intermediate data is too large to fit in memory, an external sort is used. </p>
+</blockquote>
+<blockquote>
+<p>The reduce worker iterates over the sorted intermediate data and for each unique intermediate key encountered, it passes the key and the corresponding<br>set of intermediate values to the user’s Reduce function. The output of the Reduce function is appended to a final output file for this reduce partition.</p>
+</blockquote>
+<p>这一步中，reduce worker读取中间数据，执行reduce函数，并得出最终的输出文件。同样的，这一部分是需要实现的。</p>
+<p>值得注意的是，论文提到了超出内存范围时，需要使用外部排序，但是给出的样例程序<code>main/mrsequential.go</code>并没有实现超出内存范围的处理方式，完全运行于内存中。 故应当不用考虑超出内存范围的数据（正如上文，lab的数据规模还是比较友好的）。</p>
+<h3 id="Action-7"><a href="#Action-7" class="headerlink" title="Action 7"></a>Action 7</h3><blockquote>
+<p>When all map tasks and reduce tasks have been completed, the master wakes up the user program. At this point, the MapReduce call in the user program returns back to the user code.</p>
+</blockquote>
+<p>论文中，执行完MapReduce调用后，再次返回用户程序；而lab中不存在用户程序。</p>
+<h2 id="容错"><a href="#容错" class="headerlink" title="容错"></a>容错</h2><p>论文中提到了三类容错：</p>
+<h3 id="worker故障"><a href="#worker故障" class="headerlink" title="worker故障"></a>worker故障</h3><p>论文中，master通过定期ping来确认worker存活状态。如果超时未响应则视为worker失效。</p>
+<table>
+<thead>
+<tr>
+<th align="center">任务进度\失效类型</th>
+<th align="center">map worker 失效</th>
+<th align="center">reduce worker 失效</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">已完成</td>
+<td align="center">对应任务重新执行</td>
+<td align="center">无需重新执行</td>
+</tr>
+<tr>
+<td align="center">处理中</td>
+<td align="center">对应任务重新执行</td>
+<td align="center">对应任务重新执行</td>
+</tr>
+</tbody></table>
+<p>正如上文提到的，map&#x2F;reduce worker产生的数据存放于不同位置。所以对于已完成的任务，如果是map任务，需要重新执行（因为产生的数据存储在worker本地磁盘）；而对于reduce人物，则无需重新执行（其数据存储以分布式多副本的形式存储于集群中。</p>
+<p>对于lab，取决于实现方式，需要以不同方式处理worker故障：如果与论文一样，中间数据存于硬盘，则<strong>不</strong>需要重新执行已完成的map任务（显然，在单机环境下不用担心worker失效后丢失中间文件）；如果中间数据存于内存，则需要重新执行。</p>
+<p>同时，lab中对于判断worker失效有着不同的方式。</p>
+<blockquote>
+<p>The coordinator should notice if a worker hasn’t completed its task in a reasonable amount of time (for this lab, use ten seconds), and give the same task to a different worker.</p>
+</blockquote>
+<p>不同于论文的ping，lab使用完成时间判断worker状态（具体判断方法有待实现）（显然不能是ping）。</p>
+<h3 id="master-故障"><a href="#master-故障" class="headerlink" title="master 故障"></a>master 故障</h3><p>论文中提到，可以通过定期保存master状态的checkpoint来重建失效的master，但是对于只有一台的master应当不容易失效，所以论文不考虑master的容错。</p>
+<p>而lab整体都是运行于单机的，事实上不需要考虑容错（上文中的worker故障为题目要求的判断方式）。</p>
+<h3 id="Semantics-in-the-Presence-of-Failures"><a href="#Semantics-in-the-Presence-of-Failures" class="headerlink" title="Semantics in the Presence of Failures"></a>Semantics in the Presence of Failures</h3><p>即对于具有确定性的Map和Reduce操作，MapReduce执行的结果应当与顺序执行的结果相同；而对于不具确定性的操作，MapReduce应当<strong>等价于</strong>（但不一定相同）顺序执行（考虑生成随机数的操作，显然语义上相同的执行并不一定得到相同结果）。这是由MapReduce的执行过程决定的。</p>
+<h1 id="实现过程"><a href="#实现过程" class="headerlink" title="实现过程"></a>实现过程</h1><h2 id="数据类型定义"><a href="#数据类型定义" class="headerlink" title="数据类型定义"></a>数据类型定义</h2><p> 首先应当明确，要实现一个MapReduce框架，需要维护&#x2F;传递哪些数据：</p>
+<h3 id="任务信息"><a href="#任务信息" class="headerlink" title="任务信息"></a>任务信息</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> MrTask <span class="keyword">struct</span> &#123;</span><br><span class="line">	Id             <span class="type">int</span></span><br><span class="line">	CreateTime     <span class="type">int64</span></span><br><span class="line">	NReduce        <span class="type">int</span></span><br><span class="line">	Type           TaskType</span><br><span class="line">	Status         MrTaskStatus</span><br><span class="line">	InputFileName  <span class="type">string</span></span><br><span class="line">	InterFileNames []<span class="type">string</span></span><br><span class="line">	OutputFileName <span class="type">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> TaskType <span class="type">int</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> (</span><br><span class="line">	Map TaskType = <span class="literal">iota</span></span><br><span class="line">	Reduce</span><br><span class="line">	NoMoreTasks</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> MrTaskStatus <span class="type">int</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> (</span><br><span class="line">	Idle MrTaskStatus = <span class="literal">iota</span></span><br><span class="line">	InProgress</span><br><span class="line">	Completed</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>与工作在GFS &#x2F; HDFS上的MapReduce类似，我们的实现也是在同一个文件系统（本地文件系统）上的。任务信息通过RPC传递，而任务数据则通过文件传输。</p>
+<p>三个FileName(s)字段中，Map任务需要读取<code>InputFileName</code>，输出<code>InterFileNames</code>；Reduce任务读取<code>InterFileNames</code>，输出<code>OutputFileName</code>。</p>
+<p>另外，引入<code>CreateTime</code>是为了确认唯一的任务（或者说任务的一次执行）。因为任务在超时（lab中要求的10秒）后才会重新指定worker执行，所以<code>Id</code>和<code>CreateTime</code>一定可以确认唯一的一次任务执行。</p>
+<h3 id="Coordinator"><a href="#Coordinator" class="headerlink" title="Coordinator"></a>Coordinator</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Coordinator <span class="keyword">struct</span> &#123;</span><br><span class="line">	inputFileNames []<span class="type">string</span></span><br><span class="line">	nReduce        <span class="type">int</span>              <span class="comment">// number of reduce tasks</span></span><br><span class="line">	workerTimeOut  time.Duration    <span class="comment">// time to re-assign tasks, default 10s</span></span><br><span class="line">	state          coordinatorState <span class="comment">// coordinator state</span></span><br><span class="line">	tasks          [][]MrTask       <span class="comment">// mapreduce tasks, example: task[Map][taskId]</span></span><br><span class="line">	taskCount      <span class="type">int</span>              <span class="comment">// the number of tasks which are not completed</span></span><br><span class="line">	taskLock       sync.Mutex       <span class="comment">// lock for update Task Status</span></span><br><span class="line">	taskChannel    <span class="keyword">chan</span> MrTask      <span class="comment">// channel to assign Idle tasks</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> coordinatorState <span class="type">int</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> (</span><br><span class="line">	creating coordinatorState = <span class="literal">iota</span></span><br><span class="line">	mapping</span><br><span class="line">	reducing</span><br><span class="line">	done</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>与论文中提到的类似，master(coordinator)维护了关于整个MapReduce程序和每个任务的信息。taskChannel本身由于go channel的特性，可以保证互斥，而其他任务信息则需要互斥锁taskLock实现互斥访问。</p>
+<h3 id="RPC数据"><a href="#RPC数据" class="headerlink" title="RPC数据"></a>RPC数据</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> GetTaskArgs <span class="keyword">struct</span> &#123;</span><br><span class="line">	Nothing <span class="type">int</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">type</span> GetTaskReply <span class="keyword">struct</span> &#123;</span><br><span class="line">	Task MrTask</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> ReportTaskArgs <span class="keyword">struct</span> &#123;</span><br><span class="line">	Task MrTask</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">type</span> ReportTaskReply <span class="keyword">struct</span> &#123;</span><br><span class="line">	Nothing <span class="type">int</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>RPC只涉及两种情况：</p>
+<ul>
+<li>Worker向Coordinator请求任务</li>
+<li>Worker向Coordinator汇报任务</li>
+</ul>
+<p>二者均只需要传递一条任务信息，且无论任务成败均与Worker无关，而是由Coordinator来决定。所以这里使用<code>Nothing</code>占位，而不需要真的有参数&#x2F;请求。</p>
+<h2 id="Worker设计"><a href="#Worker设计" class="headerlink" title="Worker设计"></a>Worker设计</h2><p>正如其名，worker只需要work。它所需要做的就是请求任务-&gt;执行任务-&gt;汇报任务，不断循环。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// main/mrworker.go calls this function.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Worker</span><span class="params">(mapFunc <span class="keyword">func</span>(<span class="type">string</span>, <span class="type">string</span>)</span></span> []KeyValue,</span><br><span class="line">	reduceFunc <span class="function"><span class="keyword">func</span><span class="params">(<span class="type">string</span>, []<span class="type">string</span>)</span></span> <span class="type">string</span>) &#123;</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		task := getTaskCall()</span><br><span class="line">		<span class="keyword">if</span> task.Type == Map &#123;</span><br><span class="line">			<span class="comment">// read from input file</span></span><br><span class="line">			file, err := os.Open(task.InputFileName)</span><br><span class="line">			<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Fatalf(<span class="string">&quot;cannot open %v&quot;</span>, task.InputFileName)</span><br><span class="line">			&#125;</span><br><span class="line">			content, err := io.ReadAll(file)</span><br><span class="line">			<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Fatalf(<span class="string">&quot;cannot read %v&quot;</span>, task.InputFileName)</span><br><span class="line">			&#125;</span><br><span class="line">			err = file.Close()</span><br><span class="line">			<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Fatalf(<span class="string">&quot;cannot close %v: %v&quot;</span>, task.InputFileName, err)</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="comment">// run map function</span></span><br><span class="line">			keyValues := mapFunc(task.InputFileName, <span class="type">string</span>(content))</span><br><span class="line"></span><br><span class="line">			<span class="comment">// split intermediate data into R(or NReduce) pieces</span></span><br><span class="line">			interDatas := <span class="built_in">make</span>([][]KeyValue, <span class="number">0</span>)</span><br><span class="line">			<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; task.NReduce; i++ &#123;</span><br><span class="line">				interDatas = <span class="built_in">append</span>(interDatas, <span class="built_in">make</span>([]KeyValue, <span class="number">0</span>))</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">for</span> _, kv := <span class="keyword">range</span> keyValues &#123;</span><br><span class="line">				index := ihash(kv.Key) % task.NReduce</span><br><span class="line">				interDatas[index] = <span class="built_in">append</span>(interDatas[index], kv)</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="comment">// serialize and write intermediate file</span></span><br><span class="line">			<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; task.NReduce; i++ &#123;</span><br><span class="line">				<span class="keyword">var</span> buffer bytes.Buffer</span><br><span class="line">				enc := gob.NewEncoder(&amp;buffer)</span><br><span class="line">				err := enc.Encode(interDatas[i])</span><br><span class="line">				<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">					log.Fatal(<span class="string">&quot;encode error:&quot;</span>, err)</span><br><span class="line">				&#125;</span><br><span class="line">				interFileName := fmt.Sprintf(<span class="string">&quot;mr-map-%v-reduce-%v-%v&quot;</span>, task.Id, i, task.CreateTime)</span><br><span class="line">				file, err := os.Create(interFileName)</span><br><span class="line">				<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">					log.Fatalf(<span class="string">&quot;cannot create %v&quot;</span>, interFileName)</span><br><span class="line">				&#125;</span><br><span class="line">				_, err = file.Write(buffer.Bytes())</span><br><span class="line">				<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">					log.Fatalf(<span class="string">&quot;cannot write %v&quot;</span>, interFileName)</span><br><span class="line">				&#125;</span><br><span class="line">				err = file.Close()</span><br><span class="line">				<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">					log.Fatalf(<span class="string">&quot;cannot close %v&quot;</span>, interFileName)</span><br><span class="line">				&#125;</span><br><span class="line">				task.InterFileNames = <span class="built_in">append</span>(task.InterFileNames, interFileName)</span><br><span class="line">			&#125;</span><br><span class="line">			task.Status = Completed</span><br><span class="line"></span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> task.Type == Reduce &#123;</span><br><span class="line">			<span class="comment">// read and deserialize intermedia data</span></span><br><span class="line">			<span class="keyword">var</span> interData []KeyValue</span><br><span class="line">			interNum := <span class="built_in">len</span>(task.InterFileNames)</span><br><span class="line">			<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; interNum; i++ &#123;</span><br><span class="line">				<span class="keyword">var</span> buffer bytes.Buffer</span><br><span class="line">				dec := gob.NewDecoder(&amp;buffer)</span><br><span class="line">				interFileName := task.InterFileNames[i]</span><br><span class="line">				file, err := os.Open(interFileName)</span><br><span class="line">				<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">					log.Fatalf(<span class="string">&quot;cannot open %v&quot;</span>, interFileName)</span><br><span class="line">				&#125;</span><br><span class="line">				content, err := io.ReadAll(file)</span><br><span class="line">				<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">					log.Fatalf(<span class="string">&quot;cannot read %v&quot;</span>, interFileName)</span><br><span class="line">				&#125;</span><br><span class="line">				err = file.Close()</span><br><span class="line">				<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">					log.Fatalf(<span class="string">&quot;cannot close %v&quot;</span>, interFileName)</span><br><span class="line">				&#125;</span><br><span class="line">				buffer.Write(content)</span><br><span class="line">				<span class="keyword">var</span> data []KeyValue</span><br><span class="line">				err = dec.Decode(&amp;data)</span><br><span class="line">				<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">					log.Fatal(<span class="string">&quot;decode error:&quot;</span>, err)</span><br><span class="line">				&#125;</span><br><span class="line">				interData = <span class="built_in">append</span>(interData, data...)</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="comment">// prepare (Key, list(Value)) for reduce function</span></span><br><span class="line">			kvMap := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>][]<span class="type">string</span>)</span><br><span class="line">			<span class="keyword">for</span> _, kv := <span class="keyword">range</span> interData &#123;</span><br><span class="line">				elem, ok := kvMap[kv.Key]</span><br><span class="line">				<span class="keyword">if</span> ok &#123;</span><br><span class="line">					kvMap[kv.Key] = <span class="built_in">append</span>(elem, kv.Value)</span><br><span class="line">				&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">					kvMap[kv.Key] = []<span class="type">string</span>&#123;kv.Value&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="comment">// run reduce function</span></span><br><span class="line">			outputString := <span class="string">&quot;&quot;</span></span><br><span class="line">			<span class="keyword">for</span> key, values := <span class="keyword">range</span> kvMap &#123;</span><br><span class="line">				outputString += fmt.Sprintf(<span class="string">&quot;%v %v\n&quot;</span>, key, reduceFunc(key, values))</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="comment">// write output file</span></span><br><span class="line">			outputFileName := fmt.Sprintf(<span class="string">&quot;mr-out-%v-%v&quot;</span>, task.Id, task.CreateTime)</span><br><span class="line">			file, err := os.Create(outputFileName)</span><br><span class="line">			<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Fatalf(<span class="string">&quot;cannot create %v&quot;</span>, outputFileName)</span><br><span class="line">			&#125;</span><br><span class="line">			_, err = file.WriteString(outputString)</span><br><span class="line">			<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Fatalf(<span class="string">&quot;cannot write %v&quot;</span>, outputFileName)</span><br><span class="line">			&#125;</span><br><span class="line">			err = file.Close()</span><br><span class="line">			<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Fatalf(<span class="string">&quot;cannot close %v&quot;</span>, outputFileName)</span><br><span class="line">			&#125;</span><br><span class="line">			task.OutputFileName = outputFileName</span><br><span class="line">			task.Status = Completed</span><br><span class="line"></span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> task.Type == NoMoreTasks &#123;</span><br><span class="line">			os.Exit(<span class="number">0</span>)</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// report Task</span></span><br><span class="line">		ReportTaskCall(task)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>值得注意的是中间文件&#x2F;输出文件的命名：二者均追加了时间戳，用于避免冲突。而最终是否将中间文件用于生成reduce任务&#x2F;将输出文件确认为最终结果（删去文件名的时间戳），都交由coordinator决定。</p>
+<h2 id="Coordinator设计"><a href="#Coordinator设计" class="headerlink" title="Coordinator设计"></a>Coordinator设计</h2><p>相较于逻辑非常简单的Worker，Coordinator的任务较为复杂。需要生成任务、分配任务、判断任务是否正常完成等。其中除了生成任务的部分以外均需要并发。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">graph LR</span><br><span class="line">	genmap((生成 map 任务))--&gt;map1(执行 map 任务)--&gt;genred((生成 reduce 任务))--&gt;red1(执行 reduce 任务)--&gt;fin((完成 MapReduce))</span><br><span class="line">	genmap--&gt;map2(执行 map 任务)--&gt;genred</span><br><span class="line">	genmap--&gt;map3(执行 map 任务)--&gt;genred</span><br><span class="line">	genred--&gt;red2(执行 reduce 任务)--&gt;fin</span><br><span class="line">	genred--&gt;red3(执行 reduce 任务)--&gt;fin</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="创建Coordinator"><a href="#创建Coordinator" class="headerlink" title="创建Coordinator"></a>创建Coordinator</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// create a Coordinator.</span></span><br><span class="line"><span class="comment">// main/mrcoordinator.go calls this function.</span></span><br><span class="line"><span class="comment">// NReduce is the number of reduce tasks to use.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MakeCoordinator</span><span class="params">(files []<span class="type">string</span>, nReduce <span class="type">int</span>)</span></span> *Coordinator &#123;</span><br><span class="line">	c := Coordinator&#123;</span><br><span class="line">		inputFileNames: files,</span><br><span class="line">		nReduce:        nReduce,</span><br><span class="line">		workerTimeOut:  time.Second * <span class="number">10</span>,</span><br><span class="line">		state:          creating,</span><br><span class="line">		tasks:          [][]MrTask&#123;<span class="built_in">make</span>([]MrTask, <span class="number">0</span>), <span class="built_in">make</span>([]MrTask, <span class="number">0</span>)&#125;,</span><br><span class="line">		taskLock:       sync.Mutex&#123;&#125;,</span><br><span class="line">		taskChannel:    <span class="built_in">make</span>(<span class="keyword">chan</span> MrTask, max_(<span class="built_in">len</span>(files), nReduce)+<span class="number">1</span>),</span><br><span class="line">	&#125;</span><br><span class="line">	c.taskLock.Lock()</span><br><span class="line">	c.generateMapTasks()</span><br><span class="line">	c.taskLock.Unlock()</span><br><span class="line">	c.server()</span><br><span class="line">	<span class="keyword">return</span> &amp;c</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>创建coordinator，生成map任务，运行RPC服务端。</p>
+<h3 id="生成-map-任务"><a href="#生成-map-任务" class="headerlink" title="生成 map 任务"></a>生成 map 任务</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Coordinator)</span></span> generateMapTasks() &#123;</span><br><span class="line">	taskNumber := <span class="built_in">len</span>(c.inputFileNames)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; taskNumber; i++ &#123;</span><br><span class="line">		task := MrTask&#123;</span><br><span class="line">			Id:             i,</span><br><span class="line">			CreateTime:     time.Now().Unix(),</span><br><span class="line">			NReduce:        c.nReduce,</span><br><span class="line">			Type:           Map,</span><br><span class="line">			Status:         Idle,</span><br><span class="line">			InputFileName:  c.inputFileNames[i],</span><br><span class="line">			InterFileNames: <span class="built_in">make</span>([]<span class="type">string</span>, <span class="number">0</span>),</span><br><span class="line">		&#125;</span><br><span class="line">		c.tasks[Map] = <span class="built_in">append</span>(c.tasks[Map], task)</span><br><span class="line">	&#125;</span><br><span class="line">	c.taskCount = taskNumber</span><br><span class="line">	c.state = mapping</span><br><span class="line">	<span class="keyword">for</span> _, task := <span class="keyword">range</span> c.tasks[Map] &#123;</span><br><span class="line">		c.taskChannel &lt;- task</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="生成-reduce-任务"><a href="#生成-reduce-任务" class="headerlink" title="生成 reduce 任务"></a>生成 reduce 任务</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Coordinator)</span></span> generateReduceTasks() &#123;</span><br><span class="line">	mapTaskNumber := <span class="built_in">len</span>(c.inputFileNames)</span><br><span class="line">	reduceTaskNumber := c.nReduce</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; reduceTaskNumber; i++ &#123;</span><br><span class="line">		task := MrTask&#123;</span><br><span class="line">			Id:             i,</span><br><span class="line">			CreateTime:     time.Now().Unix(),</span><br><span class="line">			NReduce:        c.nReduce,</span><br><span class="line">			Type:           Reduce,</span><br><span class="line">			Status:         Idle,</span><br><span class="line">			InterFileNames: <span class="built_in">make</span>([]<span class="type">string</span>, <span class="number">0</span>),</span><br><span class="line">		&#125;</span><br><span class="line">		c.tasks[Reduce] = <span class="built_in">append</span>(c.tasks[Reduce], task)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// shuffle intermediate files</span></span><br><span class="line">	<span class="keyword">for</span> mapIndex := <span class="number">0</span>; mapIndex &lt; mapTaskNumber; mapIndex++ &#123;</span><br><span class="line">		<span class="keyword">for</span> reduceIndex := <span class="number">0</span>; reduceIndex &lt; reduceTaskNumber; reduceIndex++ &#123;</span><br><span class="line">			c.tasks[Reduce][reduceIndex].InterFileNames =</span><br><span class="line">				<span class="built_in">append</span>(c.tasks[Reduce][reduceIndex].InterFileNames,</span><br><span class="line">					c.tasks[Map][mapIndex].InterFileNames[reduceIndex])</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	c.taskCount = reduceTaskNumber</span><br><span class="line">	c.state = reducing</span><br><span class="line">	<span class="keyword">for</span> _, task := <span class="keyword">range</span> c.tasks[Reduce] &#123;</span><br><span class="line">		c.taskChannel &lt;- task</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="得出输出文件-删除中间文件"><a href="#得出输出文件-删除中间文件" class="headerlink" title="得出输出文件 &amp; 删除中间文件"></a>得出输出文件 &amp; 删除中间文件</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// CleanUp - remove intermedia files &amp; rename output files</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Coordinator)</span></span> CleanUp() &#123;</span><br><span class="line">	<span class="keyword">for</span> _, task := <span class="keyword">range</span> c.tasks[Reduce] &#123;</span><br><span class="line">		deleteFiles(task.InterFileNames)</span><br><span class="line">		renameFile(task.OutputFileName, fmt.Sprintf(<span class="string">&quot;mr-out-%v&quot;</span>, task.Id))</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="处理-worker请求"><a href="#处理-worker请求" class="headerlink" title="处理 worker请求"></a>处理 worker请求</h3><p>如上文，worker会在两种情况下使用RPC向coordinator发送请求：</p>
+<ul>
+<li><p>获取任务</p>
+  <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Coordinator)</span></span> GetTask(args *GetTaskArgs, reply *GetTaskReply) <span class="type">error</span> &#123;</span><br><span class="line">    _ = args</span><br><span class="line">    c.taskLock.Lock()</span><br><span class="line">    <span class="keyword">defer</span> c.taskLock.Unlock()</span><br><span class="line">    <span class="keyword">if</span> c.state == done &#123;</span><br><span class="line">        reply.Task = MrTask&#123;Type: NoMoreTasks&#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        task := &lt;-c.taskChannel</span><br><span class="line">        c.tasks[task.Type][task.Id].Status = InProgress</span><br><span class="line">        <span class="keyword">go</span> c.taskTimeOut(&amp;c.tasks[task.Type][task.Id])</span><br><span class="line">        reply.Task = task</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Coordinator)</span></span> taskTimeOut(task *MrTask) &#123;</span><br><span class="line">    time.Sleep(c.workerTimeOut)</span><br><span class="line">    c.taskLock.Lock()</span><br><span class="line">    <span class="keyword">defer</span> c.taskLock.Unlock()</span><br><span class="line">    <span class="keyword">if</span> task.Status != Completed &#123;</span><br><span class="line">        <span class="comment">// worker time out, create a new task</span></span><br><span class="line">        task.Status = Idle</span><br><span class="line">        task.CreateTime = time.Now().Unix()</span><br><span class="line">        c.taskChannel &lt;- *task</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>  当worker获取任务时，coordinator的任务列表中，会将这次任务标记为<code>InProgress</code>。同时，创建一个 go routine 用于计时。如果10秒后，这次任务还没有完成，则视为失败。这时会使用一个新的时间戳来创建新的任务，并放入等待执行的channel中。</p>
+</li>
+<li><p>汇报任务</p>
+  <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Coordinator)</span></span> ReportTask(args *ReportTaskArgs, reply *ReportTaskReply) <span class="type">error</span> &#123;</span><br><span class="line">	_ = reply</span><br><span class="line">	taskId := args.Task.Id</span><br><span class="line">	taskType := args.Task.Type</span><br><span class="line">	c.taskLock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> c.taskLock.Unlock()</span><br><span class="line">	<span class="keyword">if</span> c.tasks[taskType][taskId].CreateTime == args.Task.CreateTime &#123;</span><br><span class="line">		<span class="comment">// completed in time, take as valid report</span></span><br><span class="line">		c.tasks[taskType][taskId] = args.Task</span><br><span class="line">		c.taskCount--</span><br><span class="line">		<span class="keyword">if</span> c.taskCount == <span class="number">0</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> c.state == mapping &#123;</span><br><span class="line">				c.generateReduceTasks()</span><br><span class="line">				c.state = reducing</span><br><span class="line">			&#125; <span class="keyword">else</span> <span class="keyword">if</span> c.state == reducing &#123;</span><br><span class="line">				c.CleanUp()</span><br><span class="line">				c.state = done</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="comment">// time out, invalid report</span></span><br><span class="line">		<span class="keyword">if</span> args.Task.Type == Map &#123;</span><br><span class="line">			deleteFiles(args.Task.InterFileNames)</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			deleteFiles([]<span class="type">string</span>&#123;args.Task.OutputFileName&#125;)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>  如果汇报的任务与coordinator中的时间戳不符，则表明这次汇报的任务已经因为超时，被再次分配了。</p>
+<p>  如果时间戳相符，则证明是一次成功的任务执行。这时coordinator使用汇报的任务信息替换自身保存的任务信息。</p>
+<p>  当所有任务都被成功执行后（<code>taskCount</code>减为0），则coordinator会转入下一个工作阶段：从mapping到reducing，或者从reducing到done。</p>
+</li>
+</ul>
+<h1 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">$ bash test-mr.sh</span><br><span class="line">*** Starting <span class="built_in">wc</span> <span class="built_in">test</span>.</span><br><span class="line">--- <span class="built_in">wc</span> <span class="built_in">test</span>: PASS</span><br><span class="line">*** Starting indexer <span class="built_in">test</span>.</span><br><span class="line">--- indexer <span class="built_in">test</span>: PASS</span><br><span class="line">*** Starting map parallelism <span class="built_in">test</span>.</span><br><span class="line">--- map parallelism <span class="built_in">test</span>: PASS</span><br><span class="line">*** Starting reduce parallelism <span class="built_in">test</span>.</span><br><span class="line">--- reduce parallelism <span class="built_in">test</span>: PASS</span><br><span class="line">*** Starting job count <span class="built_in">test</span>.</span><br><span class="line">unexpected EOF</span><br><span class="line">unexpected EOF</span><br><span class="line">2024/02/20 21:04:09 Get Task failed!</span><br><span class="line">2024/02/20 21:04:09 Get Task failed!</span><br><span class="line">--- job count <span class="built_in">test</span>: PASS</span><br><span class="line">*** Starting early <span class="built_in">exit</span> <span class="built_in">test</span>.</span><br><span class="line">--- early <span class="built_in">exit</span> <span class="built_in">test</span>: PASS</span><br><span class="line">*** Starting crash <span class="built_in">test</span>.</span><br><span class="line">unexpected EOF</span><br><span class="line">unexpected EOF</span><br><span class="line">unexpected EOF</span><br><span class="line">2024/02/20 21:04:37 Get Task failed!</span><br><span class="line">2024/02/20 21:04:37 Get Task failed!</span><br><span class="line">2024/02/20 21:04:37 Get Task failed!</span><br><span class="line">--- crash <span class="built_in">test</span>: PASS</span><br><span class="line">*** PASSED ALL TESTS</span><br></pre></td></tr></table></figure>
+
+<h2 id="异常分析"><a href="#异常分析" class="headerlink" title="异常分析"></a>异常分析</h2><p>到这里已经完成了所有的test，但是其中出现的一些异常有些碍眼。</p>
+<p>unexpected EOF 和 Get Task failed! 仅成对出现于coordinator早于worker结束的情况：coordinator已经完成MapReduce任务，关闭RPC服务端；而worker仍然通过RPC客户端尝试获取任务，导致异常退出（log.Fatal(xxx)）。</p>
+<p>事实上这些异常均发生在MapReduce任务结束后，并不会影响测试结果，但是对于代码的精神洁癖促使我尝试解决这些异常：</p>
+<h3 id="job-count-test"><a href="#job-count-test" class="headerlink" title="job count test"></a>job count test</h3><p>其中，job count test出现这一问题是因为<code>test-mr.sh</code>中少了一个<code>&amp;</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">maybe_quiet <span class="variable">$TIMEOUT</span> ../mrworker ../../mrapps/jobcount.so &amp;</span><br><span class="line">maybe_quiet <span class="variable">$TIMEOUT</span> ../mrworker ../../mrapps/jobcount.so</span><br><span class="line">maybe_quiet <span class="variable">$TIMEOUT</span> ../mrworker ../../mrapps/jobcount.so &amp;</span><br><span class="line">maybe_quiet <span class="variable">$TIMEOUT</span> ../mrworker ../../mrapps/jobcount.so</span><br></pre></td></tr></table></figure>
+
+<p>由于第二个worker不是使用subshell后台运行，导致前两个worker结束后才会启动后两个worker。而前两个worker与coordinator几乎同时结束（worker在执行完最后一个任务后，收到<code>NoMoreTasks</code>结束；coordinator在<code>src/main/mrcoordinator.go</code>发现任务结束后被结束）。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(os.Args) &lt; <span class="number">2</span> &#123;</span><br><span class="line">		fmt.Fprintf(os.Stderr, <span class="string">&quot;Usage: mrcoordinator inputfiles...\n&quot;</span>)</span><br><span class="line">		os.Exit(<span class="number">1</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	m := mr.MakeCoordinator(os.Args[<span class="number">1</span>:], <span class="number">10</span>)</span><br><span class="line">	<span class="keyword">for</span> m.Done() == <span class="literal">false</span> &#123;</span><br><span class="line">		time.Sleep(time.Second)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	time.Sleep(time.Second)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以后两个worker获取任务失败。</p>
+<p>解决方案：在第二个mrworker后添加<code>&amp;</code></p>
+<h3 id="crash-test"><a href="#crash-test" class="headerlink" title="crash test"></a>crash test</h3><p>crash test 中的异常成因类似，但并不完全是测试脚本的问题：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">rm</span> -f mr-done</span><br><span class="line">((maybe_quiet <span class="variable">$TIMEOUT2</span> ../mrcoordinator ../pg*txt); touch mr-done ) &amp;</span><br><span class="line">sleep <span class="number">1</span></span><br><span class="line"></span><br><span class="line"># start multiple workers</span><br><span class="line">maybe_quiet <span class="variable">$TIMEOUT2</span> ../mrworker ../../mrapps/crash.so &amp;</span><br><span class="line"></span><br><span class="line"># mimic rpc.go&#x27;s coordinatorSock()</span><br><span class="line">SOCKNAME=/var/tmp/<span class="number">5840</span>-mr-`id -u`</span><br><span class="line"></span><br><span class="line">( while [ -e <span class="variable">$SOCKNAME</span> -a ! -f mr-done ]</span><br><span class="line">  do</span><br><span class="line">    maybe_quiet <span class="variable">$TIMEOUT2</span> ../mrworker ../../mrapps/crash.so</span><br><span class="line">    sleep <span class="number">1</span></span><br><span class="line">  done ) &amp;</span><br><span class="line"></span><br><span class="line">( while [ -e <span class="variable">$SOCKNAME</span> -a ! -f mr-done ]</span><br><span class="line">  do</span><br><span class="line">    maybe_quiet <span class="variable">$TIMEOUT2</span> ../mrworker ../../mrapps/crash.so</span><br><span class="line">    sleep <span class="number">1</span></span><br><span class="line">  done ) &amp;</span><br><span class="line"></span><br><span class="line">while [ -e <span class="variable">$SOCKNAME</span> -a ! -f mr-done ]</span><br><span class="line">do</span><br><span class="line">  maybe_quiet <span class="variable">$TIMEOUT2</span> ../mrworker ../../mrapps/crash.so</span><br><span class="line">  sleep <span class="number">1</span></span><br><span class="line">done</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>在这个test中，使用三个while来启动worker：当worker结束<strong>一秒</strong>后，只要coordinator没有结束，就再次启动worker。</p>
+<p>但是<code>src/main/mrcoordinator.go</code>中，调用<code>m.Done()</code>后sleep一秒，当返回值为true时再sleep一秒：忽略执行时间，当<code>coordinator.State</code>被设为<code>done</code>后的<strong>1-2秒</strong>，coordinator被结束。</p>
+<p>而coordinator的实现中，只结束了运行完最后一个任务时被阻塞的worker，并没有考虑到这之后的worker。</p>
+<p>这里我的实现思路与测试代码暗含的出题人的思路不同，我个人认为两种思路应当都是正确的：我的思路倾向于在worker正常结束后不会产生新的worker；而出题人似乎认为worker不会主动结束，只要结束就应当是crash。</p>
+<p>解决方案有两种：</p>
+<ol>
+<li>将测试脚本中的<code>sleep 1</code>改为<code>sleep 2</code></li>
+<li>使coordinator持续向<code>taskChannel</code>输入<code>MrTask&#123;Type: NoMoreTasks&#125;</code>，以结束后续所有的worker。（上一个问题也可以被这一方案解决，但是test的逻辑确实有问题，所以仍然应当按照上文修改测试代码）</li>
+</ol>
+<p>修改后测试结果完全正常（启用了go的race detector）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ bash test-mr.sh</span><br><span class="line">*** Starting <span class="built_in">wc</span> <span class="built_in">test</span>.</span><br><span class="line">--- <span class="built_in">wc</span> <span class="built_in">test</span>: PASS</span><br><span class="line">*** Starting indexer <span class="built_in">test</span>.</span><br><span class="line">--- indexer <span class="built_in">test</span>: PASS</span><br><span class="line">*** Starting map parallelism <span class="built_in">test</span>.</span><br><span class="line">--- map parallelism <span class="built_in">test</span>: PASS</span><br><span class="line">*** Starting reduce parallelism <span class="built_in">test</span>.</span><br><span class="line">--- reduce parallelism <span class="built_in">test</span>: PASS</span><br><span class="line">*** Starting job count <span class="built_in">test</span>.</span><br><span class="line">--- job count <span class="built_in">test</span>: PASS</span><br><span class="line">*** Starting early <span class="built_in">exit</span> <span class="built_in">test</span>.</span><br><span class="line">--- early <span class="built_in">exit</span> <span class="built_in">test</span>: PASS</span><br><span class="line">*** Starting crash <span class="built_in">test</span>.</span><br><span class="line">--- crash <span class="built_in">test</span>: PASS</span><br><span class="line">*** PASSED ALL TESTS</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag"><i class="fa fa-tag"></i> 分布式</a>
+              <a href="/tags/csdiy/" rel="tag"><i class="fa fa-tag"></i> csdiy</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/10/15/A%E6%B5%8B%E9%80%9F%E9%80%9A/" rel="prev" title="A测速通">
+                  <i class="fa fa-angle-left"></i> A测速通
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">ccreeper</span>
+  </div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div><!-- Cloudflare Web Analytics -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "603a4f443b224d768309bdee7f7400f9"}'></script>
+<!-- End Cloudflare Web Analytics -->
+
+
+    </div>
+  </footer>
+
+  
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.24/fancybox/fancybox.umd.js" integrity="sha256-oyhjPiYRWGXaAt+ny/mTMWOnN1GBoZDUQnzzgC7FRI4=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pangu/4.0.7/pangu.min.js" integrity="sha256-j+yj56cdEY2CwkVtGyz18fNybFGpMGJ8JxG3GSyO2+I=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  
+  <script class="next-config" data-name="pdf" type="application/json">{"object_url":{"url":"https://cdnjs.cloudflare.com/ajax/libs/pdfobject/2.2.12/pdfobject.min.js","integrity":"sha256-g2xji1rlE3KsGVClvuxTbcR0Kn2+wtQADSff2Tbb4zA="},"url":"/lib/pdf/web/viewer"}</script>
+  <script src="/js/third-party/tags/pdf.js"></script>
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.5.0/mermaid.min.js","integrity":"sha256-K7oJiQlDulzl24ZUFOywuYme1JqBBvQzK6m8qHjt9Gk="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+  <script src="/js/third-party/pace.js"></script>
+
+
+  
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
