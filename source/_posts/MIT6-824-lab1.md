@@ -215,7 +215,7 @@ func Worker(mapFunc func(string, string) []KeyValue,
 			// read from input file
 			file, err := os.Open(task.InputFileName)
 			if err != nil {
-				log.Fatalf("cannot open %v", task.InputFileName)
+				log.Fatalf("cannot open input file %v", task.InputFileName)
 			}
 			content, err := io.ReadAll(file)
 			if err != nil {
@@ -274,7 +274,7 @@ func Worker(mapFunc func(string, string) []KeyValue,
 				interFileName := task.InterFileNames[i]
 				file, err := os.Open(interFileName)
 				if err != nil {
-					log.Fatalf("cannot open %v", interFileName)
+					log.Fatalf("cannot open intermediate file %v", interFileName)
 				}
 				content, err := io.ReadAll(file)
 				if err != nil {
@@ -462,18 +462,16 @@ func (c *Coordinator) CleanUp() {
 
     ```go
     func (c *Coordinator) GetTask(args *GetTaskArgs, reply *GetTaskReply) error {
-        _ = args
-        c.taskLock.Lock()
-        defer c.taskLock.Unlock()
-        if c.state == done {
-            reply.Task = MrTask{Type: NoMoreTasks}
-        } else {
-            task := <-c.taskChannel
-            c.tasks[task.Type][task.Id].Status = InProgress
-            go c.taskTimeOut(&c.tasks[task.Type][task.Id])
-            reply.Task = task
-        }
-        return nil
+    	_ = args
+    	task := <-c.taskChannel
+    	if task.Type != NoMoreTasks {
+    		c.taskLock.Lock()
+    		defer c.taskLock.Unlock()
+    		c.tasks[task.Type][task.Id].Status = InProgress
+    		go c.taskTimeOut(&c.tasks[task.Type][task.Id])
+    	}
+    	reply.Task = task
+    	return nil
     }
     
     func (c *Coordinator) taskTimeOut(task *MrTask) {
@@ -644,12 +642,43 @@ done
 
 而coordinator的实现中，只结束了运行完最后一个任务时被阻塞的worker，并没有考虑到这之后的worker。
 
+```go
+c.CleanUp()
+c.state = done
+
+// send NoMoreTasks to pending workers
+for fin := false; !fin; {
+    select {
+    case <-c.taskChannel:
+        fin = true
+    default:
+        c.taskChannel <- MrTask{Type: NoMoreTasks}
+    }
+}
+// send to the worker that reported the last task
+c.taskChannel <- MrTask{Type: NoMoreTasks}
+```
+
+
+
 这里我的实现思路与测试代码暗含的出题人的思路不同，我个人认为两种思路应当都是正确的：我的思路倾向于在worker正常结束后不会产生新的worker；而出题人似乎认为worker不会主动结束，只要结束就应当是crash。
 
 解决方案有两种：
 
 1. 将测试脚本中的`sleep 1`改为`sleep 2`
 2. 使coordinator持续向`taskChannel`输入`MrTask{Type: NoMoreTasks}`，以结束后续所有的worker。（上一个问题也可以被这一方案解决，但是test的逻辑确实有问题，所以仍然应当按照上文修改测试代码）
+    ```go
+    c.CleanUp()
+    
+    // send NoMoreTasks to workers
+    go func() {
+        for {
+            c.taskChannel <- MrTask{Type: NoMoreTasks}
+        }
+    }()
+    
+    c.state = done
+    ```
 
 修改后测试结果完全正常（启用了go的race detector）：
 
