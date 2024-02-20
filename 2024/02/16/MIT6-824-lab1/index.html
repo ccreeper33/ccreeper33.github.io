@@ -32,7 +32,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://blog.ccreeper.xyz/2024/02/16/MIT6-824-lab1/mapred_paper.png">
 <meta property="article:published_time" content="2024-02-16T13:37:42.000Z">
-<meta property="article:modified_time" content="2024-02-20T15:18:03.654Z">
+<meta property="article:modified_time" content="2024-02-20T15:25:24.273Z">
 <meta property="article:author" content="ccreeper">
 <meta property="article:tag" content="分布式">
 <meta property="article:tag" content="csdiy">
@@ -217,7 +217,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-02-20 23:18:03" itemprop="dateModified" datetime="2024-02-20T23:18:03+08:00">2024-02-20</time>
+      <time title="修改时间：2024-02-20 23:25:24" itemprop="dateModified" datetime="2024-02-20T23:25:24+08:00">2024-02-20</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -342,7 +342,12 @@
 
 <p>值得注意的是中间文件&#x2F;输出文件的命名：二者均追加了时间戳，用于避免冲突。而最终是否将中间文件用于生成reduce任务&#x2F;将输出文件确认为最终结果（删去文件名的时间戳），都交由coordinator决定。</p>
 <h2 id="Coordinator设计"><a href="#Coordinator设计" class="headerlink" title="Coordinator设计"></a>Coordinator设计</h2><p>相较于逻辑非常简单的Worker，Coordinator的任务较为复杂。需要生成任务、分配任务、判断任务是否正常完成等。其中除了生成任务的部分以外均需要并发。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">graph LR</span><br><span class="line">	genmap((生成 map 任务))--&gt;map1(执行 map 任务)--&gt;genred((生成 reduce 任务))--&gt;red1(执行 reduce 任务)--&gt;fin((完成 MapReduce))</span><br><span class="line">	genmap--&gt;map2(执行 map 任务)--&gt;genred</span><br><span class="line">	genmap--&gt;map3(执行 map 任务)--&gt;genred</span><br><span class="line">	genred--&gt;red2(执行 reduce 任务)--&gt;fin</span><br><span class="line">	genred--&gt;red3(执行 reduce 任务)--&gt;fin</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight mermaid">graph LR
+	genmap((生成 map 任务))--&gt;map1(执行 map 任务)--&gt;genred((生成 reduce 任务))--&gt;red1(执行 reduce 任务)--&gt;fin((完成 MapReduce))
+	genmap--&gt;map2(执行 map 任务)--&gt;genred
+	genmap--&gt;map3(执行 map 任务)--&gt;genred
+	genred--&gt;red2(执行 reduce 任务)--&gt;fin
+	genred--&gt;red3(执行 reduce 任务)--&gt;fin</code></pre>
 
 
 
