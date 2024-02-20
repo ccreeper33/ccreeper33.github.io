@@ -23,16 +23,16 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"blog.ccreeper.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":true,"motion":{"enable":true,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="考完研想给自己的简历镀金（灌水？），于是想做一下大名鼎鼎的 MIT 6.5840(or 6.824) 。理论知识和框架都在⚡🧱的课程中学习和使用过，所以对于 lectures 就快速浏览了翻译版本，直接进入 projects 阶段：">
+    <meta name="description" content="考完研想给自己的简历镀金（灌水？），于是想做一下大名鼎鼎的 MIT 6.5840(or 6.824) 。理论知识和框架都在⚡🧱的课程中学习和使用过，所以对于 lectures 就快速浏览了翻译版本，直接进入 projects 阶段： 详细代码见Github repo">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MIT 6.5840(6.824) - lab 1: MapReduce">
 <meta property="og:url" content="https://blog.ccreeper.xyz/2024/02/16/MIT6-824-lab1/">
 <meta property="og:site_name" content="ccreeper">
-<meta property="og:description" content="考完研想给自己的简历镀金（灌水？），于是想做一下大名鼎鼎的 MIT 6.5840(or 6.824) 。理论知识和框架都在⚡🧱的课程中学习和使用过，所以对于 lectures 就快速浏览了翻译版本，直接进入 projects 阶段：">
+<meta property="og:description" content="考完研想给自己的简历镀金（灌水？），于是想做一下大名鼎鼎的 MIT 6.5840(or 6.824) 。理论知识和框架都在⚡🧱的课程中学习和使用过，所以对于 lectures 就快速浏览了翻译版本，直接进入 projects 阶段： 详细代码见Github repo">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://blog.ccreeper.xyz/2024/02/16/MIT6-824-lab1/mapred_paper.png">
 <meta property="article:published_time" content="2024-02-16T13:37:42.000Z">
-<meta property="article:modified_time" content="2024-02-20T15:32:13.628Z">
+<meta property="article:modified_time" content="2024-02-20T15:34:30.539Z">
 <meta property="article:author" content="ccreeper">
 <meta property="article:tag" content="分布式">
 <meta property="article:tag" content="csdiy">
@@ -217,7 +217,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-02-20 23:32:13" itemprop="dateModified" datetime="2024-02-20T23:32:13+08:00">2024-02-20</time>
+      <time title="修改时间：2024-02-20 23:34:30" itemprop="dateModified" datetime="2024-02-20T23:34:30+08:00">2024-02-20</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -246,6 +246,7 @@
     
     
     <div class="post-body" itemprop="articleBody"><p>考完研想给自己的简历镀金（灌水？），于是想做一下大名鼎鼎的 MIT 6.5840(or 6.824) 。理论知识和框架都在⚡🧱的课程中学习和使用过，所以对于 lectures 就快速浏览了<a target="_blank" rel="noopener" href="https://mit-public-courses-cn-translatio.gitbook.io/mit6-824/">翻译版本</a>，直接进入 projects 阶段：</p>
+<p>详细代码见<a target="_blank" rel="noopener" href="https://github.com/ccreeper33/MIT6.5840">Github repo</a></p>
 <span id="more"></span>
 
 <h1 id="阅读论文"><a href="#阅读论文" class="headerlink" title="阅读论文"></a>阅读论文</h1><p><a target="_blank" rel="noopener" href="http://research.google.com/archive/mapreduce-osdi04.pdf">MapReduce 论文</a>中给出了在一个由大量消费级 PC 和网络组成的集群上实现 MapReduce 的思路。然而 lab 1 中要求的环境是在单机上，使用进程模拟的分布式环境，所以完全照搬论文思路似乎并不合理。<del>（另，lab 1 中将论文的 master 称为 coordinator 是否有点太过政治正确了……）</del></p>
@@ -396,8 +397,6 @@
 <p>但是<code>src/main/mrcoordinator.go</code>中，调用<code>m.Done()</code>后sleep一秒，当返回值为true时再sleep一秒：忽略执行时间，当<code>coordinator.State</code>被设为<code>done</code>后的<strong>1-2秒</strong>，coordinator被结束。</p>
 <p>而coordinator的实现中，只结束了运行完最后一个任务时被阻塞的worker，并没有考虑到这之后的worker。</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">c.CleanUp()</span><br><span class="line">c.state = done</span><br><span class="line"></span><br><span class="line"><span class="comment">// send NoMoreTasks to pending workers</span></span><br><span class="line"><span class="keyword">for</span> fin := <span class="literal">false</span>; !fin; &#123;</span><br><span class="line">    <span class="keyword">select</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> &lt;-c.taskChannel:</span><br><span class="line">        fin = <span class="literal">true</span></span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        c.taskChannel &lt;- MrTask&#123;Type: NoMoreTasks&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// send to the worker that reported the last task</span></span><br><span class="line">c.taskChannel &lt;- MrTask&#123;Type: NoMoreTasks&#125;</span><br></pre></td></tr></table></figure>
-
-
 
 <p>这里我的实现思路与测试代码暗含的出题人的思路不同，我个人认为两种思路应当都是正确的：我的思路倾向于在worker正常结束后不会产生新的worker；而出题人似乎认为worker不会主动结束，只要结束就应当是crash。</p>
 <p>解决方案有两种：</p>
