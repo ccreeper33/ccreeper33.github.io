@@ -5,7 +5,7 @@
 # Site
 title: ccreeper
 subtitle: ''
-description: 'You Only Live Once'
+description: 'Bear witness!'
 keywords: 
 author: ccreeper
 language: zh-CN
@@ -120,3 +120,14 @@ theme: next
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: ''
+
+# hexo-word-count
+## https://github.com/next-theme/hexo-word-counter
+symbols_count_time:
+  symbols: true
+  time: true
+  total_symbols: false
+  total_time: false
+  exclude_codeblock: false
+  wpm: 300
+  suffix: "mins."
